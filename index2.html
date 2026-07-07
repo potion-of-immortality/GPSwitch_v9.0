@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoTag Studio</title>
+  <meta name="description" content="Build a clean geo-tag style card on top of any image with a map-driven location picker." />
+
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@100;300;400;500&family=Raleway:wght@100&family=Inter:wght@200&family=Nunito:wght@300&family=Jost:wght@300&family=Outfit:wght@400&family=Poppins:wght@500&family=Rubik:wght@700&family=Barlow:wght@800&family=Oswald:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style2.css">
+</head>
+<body>
+
+  <div class="app-shell">
+    <main class="workspace">
+
+      <!-- LEFT COLUMN -->
+      <section class="stage">
+        <div class="stage-toolbar">
+          <label class="btn upload-label" title="Choose a photo">
+            <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" />
+            ＋ Upload Image
+          </label>
+          <button id="btn-export" class="btn" disabled title="Save the tagged image">
+            ↓ Export PNG
+          </button>
+        </div>
+
+        <div class="canvas-panel no-image" id="canvas-panel">
+          <div class="empty-state" id="empty-state">
+            <span class="icon">🗺️</span>
+            Upload a photo, pick a location on the map,<br>then export your geo-tagged image.
+            <span class="hint">Click anywhere here, or drag &amp; drop a photo</span>
+          </div>
+
+          <!-- CSS-driven preview: photo + overlay card -->
+          <div class="preview-wrapper" id="preview-wrapper">
+            <img class="preview-photo" id="preview-photo" src="" alt="Uploaded photo" />
+            <div class="photo-vignette"></div>
+
+            <!-- GEO-TAG OVERLAY CARD -->
+            <div class="geotag-card" id="geotag-card">
+
+              <!-- Mini-map -->
+              <div class="geotag-minimap" id="geotag-minimap">
+                <img id="minimap-img" src="" alt="Satellite map" />
+                <div class="google">Google</div>
+              </div>
+
+              <!-- Text panel -->
+              <div class="geotag-text">
+                <!-- Badge chip — lives here so it sits flush on text panel top-right -->
+                <div class="geotag-badge" id="geotag-badge">
+                  <div class="badge-logo" id="badge-logo">
+                    <img id="badge-logo-img" src="" alt="Badge logo" />
+                  </div>
+                  <span class="badge-label" id="ov-badge">GPS Map Camera</span>
+                </div>
+                <div class="geotag-title" id="ov-title"><span id="ov-title-text">Mahaliapara, Assam, India</span><img class="geotag-flag-img" id="ov-flag-img" alt="" /><span class="geotag-flag-text" id="ov-flag-text"></span></div>
+                <div class="geotag-address"  id="ov-address">Unnamed Road, Mahaliapara, Assam 784507, India</div>
+                <div class="geotag-address2" id="ov-address2" style="display:none;"></div>
+                <div class="geotag-coords-wrap" id="ov-coords-wrap">
+                  <div class="geotag-coords" id="ov-lat">Lat 26.783228</div>
+                  <div class="geotag-coords" id="ov-lng">Long 92.318054</div>
+                </div>
+                <div class="geotag-timestamp" id="ov-timestamp">06/06/24 03:29 PM GMT +05:30</div>
+              </div>
+
+            </div><!-- /geotag-card -->
+          </div><!-- /preview-wrapper -->
+
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN -->
+      <aside class="rail">
+        <div class="controls">
+          <div class="pair pair-title">
+            <input id="inp-title" type="text" placeholder="Title" />
+            <input id="inp-flag"  type="text" placeholder="🏳️" maxlength="8" title="Leave as-is for the Indian flag graphic, or type another flag emoji" />
+          </div>
+          <textarea id="inp-address" rows="2"    placeholder="Address Line 1"></textarea>
+          <input id="inp-address2" type="text" placeholder="Address line 2 (optional)" />
+          <div class="pair">
+            <input id="inp-lat" type="text" placeholder="Latitude" />
+            <input id="inp-lng" type="text" placeholder="Longitude" />
+          </div>
+          <!-- DateTime picker -->
+          <div class="dt-field" id="dt-field">
+            <input id="inp-timestamp" type="text" placeholder="e.g. Monday, 03/06/26 10:30 AM GMT +05:30" autocomplete="off" />
+            <button class="dt-icon-btn" id="dt-open-btn" title="Pick date" type="button">&#128197;</button>
+            <button class="dt-icon-btn" id="dt-clock-icon" title="Pick time" type="button">&#128336;</button>
+          </div>
+          <div class="dt-popover" id="dt-popover" style="display:none;">
+            <div class="dt-step" id="dt-step-cal">
+              <div class="dt-nav">
+                <button class="dt-nav-btn" id="dt-prev">&#8249;</button>
+                <span class="dt-month-label" id="dt-month-label"></span>
+                <button class="dt-nav-btn" id="dt-next">&#8250;</button>
+              </div>
+              <div class="dt-grid" id="dt-cal-grid"></div>
+            </div>
+            <div class="dt-step" id="dt-step-clock" style="display:none;">
+              <div class="dt-clock-back-row">
+                <button class="dt-nav-btn" id="dt-back-to-cal" type="button">&#8249; Date</button>
+              </div>
+              <div class="dt-clock-wrap">
+                <svg class="dt-clock-face" id="dt-clock-svg" viewBox="0 0 200 200"></svg>
+                <div class="dt-clock-mode" id="dt-clock-mode">selecting hour</div>
+              </div>
+              <div class="dt-time-display" id="dt-time-display">12:00 AM</div>
+              <div class="dt-ampm-row">
+                <button class="dt-ampm-btn active" id="dt-am">AM</button>
+                <button class="dt-ampm-btn" id="dt-pm">PM</button>
+              </div>
+              <button class="dt-confirm-btn" id="dt-confirm">Confirm</button>
+            </div>
+          </div>
+          <input id="inp-badge" type="text" placeholder="Badge text" />
+          <label class="btn logo-upload upload-label" title="Upload a logo for the badge">
+            <input type="file" id="badge-logo-input" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+            <span id="badge-logo-label">Upload badge logo</span>
+          </label>
+
+          <button type="button" class="btn extra-toggle-btn" id="btn-extra-toggle" aria-expanded="false">
+            <span>Customization Settings</span>
+            <span class="chevron" id="extra-chevron">&#9662;</span>
+          </button>
+
+          <div class="extra-settings" id="extra-settings" style="display:none;">
+            <div class="range-row">
+              <label class="range-label" for="inp-zoom">
+                <span>Map Zoom</span>
+                <span id="zoom-value">16</span>
+              </label>
+              <input id="inp-zoom" type="range" min="10" max="19" step="1" value="16" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-card-width">
+                <span>Card Width</span>
+                <span id="card-width-value">1.0×</span>
+              </label>
+              <input id="inp-card-width" type="range" min="0.5" max="1.5" step="0.05" value="1.0" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-card-height">
+                <span>Card Height</span>
+                <span id="card-height-value">1.0×</span>
+              </label>
+              <input id="inp-card-height" type="range" min="0.5" max="1.5" step="0.05" value="1.0" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-title-font">
+                <span>Title Font Size</span>
+                <span id="title-font-value">1.0×</span>
+              </label>
+              <input id="inp-title-font" type="range" min="0.5" max="2" step="0.05" value="1.0" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-text-font">
+                <span>Text Font Size</span>
+                <span id="text-font-value">1.0×</span>
+              </label>
+              <input id="inp-text-font" type="range" min="0.5" max="2" step="0.05" value="1.0" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-card-roundness">
+                <span>Card Roundness</span>
+                <span id="card-roundness-value">18px</span>
+              </label>
+              <input id="inp-card-roundness" type="range" min="0" max="40" step="1" value="18" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-info-gap">
+                <span>Info Field Gap</span>
+                <span id="info-gap-value">1.0×</span>
+              </label>
+              <input id="inp-info-gap" type="range" min="0.2" max="3" step="0.1" value="1.0" />
+            </div>
+            <div class="range-row">
+              <label class="range-label" for="inp-info-margin">
+                <span>Info Area Top/Bottom Margin</span>
+                <span id="info-margin-value">1.0×</span>
+              </label>
+              <input id="inp-info-margin" type="range" min="0" max="3" step="0.1" value="1.0" />
+            </div>
+
+            <div class="field-label">Info Field Font</div>
+            <div class="font-card-grid" id="info-font-grid">
+              <button type="button" class="font-card" data-value="'Raleway', sans-serif::100" style="font-family:'Raleway', sans-serif; font-weight:100;">Raleway Thin</button>
+              <button type="button" class="font-card" data-value="'Inter', sans-serif::200" style="font-family:'Inter', sans-serif; font-weight:200;">Inter Extra Light</button>
+              <button type="button" class="font-card" data-value="'DM Sans', sans-serif::100" style="font-family:'DM Sans', sans-serif; font-weight:100;">DM Sans Thin</button>
+              <button type="button" class="font-card active" data-value="'DM Sans', sans-serif::300" style="font-family:'DM Sans', sans-serif; font-weight:300;">DM Sans Light</button>
+              <button type="button" class="font-card" data-value="'Nunito', sans-serif::300" style="font-family:'Nunito', sans-serif; font-weight:300;">Nunito Light</button>
+              <button type="button" class="font-card" data-value="'Jost', sans-serif::300" style="font-family:'Jost', sans-serif; font-weight:300;">Jost Light</button>
+              <button type="button" class="font-card" data-value="'Outfit', sans-serif::400" style="font-family:'Outfit', sans-serif; font-weight:400;">Outfit Regular</button>
+              <button type="button" class="font-card" data-value="'Poppins', sans-serif::500" style="font-family:'Poppins', sans-serif; font-weight:500;">Poppins Medium</button>
+            </div>
+
+            <div class="field-label">Google Label (Minimap)</div>
+            <div class="font-card-grid" id="google-font-grid">
+              <button type="button" class="font-card" data-value="Arial, Helvetica, sans-serif" style="font-family:Arial, Helvetica, sans-serif;">Arial (default)</button>
+              <button type="button" class="font-card active" data-value="'DM Sans', sans-serif" style="font-family:'DM Sans', sans-serif;">DM Sans</button>
+              <button type="button" class="font-card" data-value="Verdana, sans-serif" style="font-family:Verdana, sans-serif;">Verdana</button>
+            </div>
+            <div class="font-card-grid font-card-grid-weight" id="google-weight-grid">
+              <button type="button" class="font-card" data-value="400">Regular<br>400</button>
+              <button type="button" class="font-card active" data-value="500">Medium<br>500</button>
+              <button type="button" class="font-card" data-value="600">Semibold<br>600</button>
+              <button type="button" class="font-card" data-value="700">Bold<br>700</button>
+              <button type="button" class="font-card" data-value="900">Black<br>900</button>
+            </div>
+
+            <div class="field-label">Minimap Pin</div>
+            <div class="range-row">
+              <label class="range-label" for="inp-pin-size">
+                <span>Pin Size</span>
+                <span id="pin-size-value">1.0×</span>
+              </label>
+              <input id="inp-pin-size" type="range" min="0.5" max="2" step="0.05" value="1.0" />
+            </div>
+          </div>
+        </div>
+
+        <div class="picker-card">
+          <div class="picker-status" id="picker-status">Click map to set location</div>
+          <div class="picker-map" id="picker-map">
+            <div class="map-search-overlay" id="map-search-overlay" style="display:none;">
+              <div class="searchbar">
+                <input id="search-input" type="text" placeholder="Search any location" />
+                <button id="btn-search" class="btn btn-small">Go</button>
+              </div>
+              <div class="search-results" id="search-results" style="display:none;"></div>
+            </div>
+            <div id="leaflet-map"></div>
+          </div>
+        </div>
+      </aside>
+
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- piexifjs for EXIF GPS embedding -->
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
+  <!-- html2canvas for DOM→PNG export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script src="script2.js"></script>
+</body>
+</html>
