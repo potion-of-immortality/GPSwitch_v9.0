@@ -32,7 +32,7 @@
       mapZoom:        18,
       cardWidthMult:  1.0,
       cardHeightMult: 1.0,
-      titleFontMult:  1.0,
+      titleFontMult:  1.25,
       subFontMult:    1.0,
       flagEmoji:      FLAG_DEFAULT,
       cardRadius:     18,
