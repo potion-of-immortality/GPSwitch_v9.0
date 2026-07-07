@@ -29,7 +29,7 @@
       mapLoading:     false,
       geocodeLoading: false,
       searchResults:  [],
-      mapZoom:        16,
+      mapZoom:        18,
       cardWidthMult:  1.0,
       cardHeightMult: 1.0,
       titleFontMult:  1.0,
