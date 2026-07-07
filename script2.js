@@ -7,8 +7,8 @@
     const DEFAULT_LOCATION = {
       lat:     26.783228,
       lng:     92.318054,
-      title:   "Sudipto ka Ghar",
-      address: "Unnamed Road, Unnamed Vliiage, West Bengal, India",
+      title:   "Title",
+      address: "Unnamed Road, Unnamed Village, State, India",
     };
     const BADGE_DEFAULT     = "GPS Map Camera";
     const TIMESTAMP_DEFAULT = "Tuesday, 02/06/26 23:13 PM GMT +05:30";
