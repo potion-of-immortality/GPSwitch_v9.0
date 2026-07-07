@@ -267,14 +267,6 @@
       flex-shrink: 0;
     }
 
-    .geotag-flag-img {
-      height: 0.85em;
-      width: auto;
-      margin-left: 0.4em;
-      vertical-align: middle;
-      display: none;
-    }
-
     .geotag-flag-text {
       margin-left: 0.35em;
       display: none;
