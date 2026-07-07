@@ -11,7 +11,7 @@
       address: "Unnamed Road, Unnamed Village, State, India",
     };
     const BADGE_DEFAULT     = "GPS Map Camera";
-    const TIMESTAMP_DEFAULT = "Tuesday, 02/06/26 23:13 PM GMT +05:30";
+    const TIMESTAMP_DEFAULT = "Monday, 08/06/26 09:13 AM GMT +05:30";
     const FLAG_DEFAULT      = "🇮🇳";
 
 
